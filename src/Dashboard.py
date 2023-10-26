@@ -38,6 +38,9 @@ if not os.path.exists(RETRAINING_CONFIG_PATH):
 
 with open(RETRAINING_CONFIG_PATH, 'r') as f:
     retraining_config = json.load(f)
+    if len(retraining_config['selected_vars']) == 0 or 'auto_start_date' not in retraining_config or 'auto_end_date' not in retraining_config:
+        st.warning('WARNING: No variable is selected to be included for auto re-training, please navigate to Retraining page to change it.')
+        time.sleep(999999)      
 
 with open(MONITORING_CONFIG_PATH, 'r') as f:
     monitoring_config = json.load(f)
@@ -142,7 +145,7 @@ def filter_monitoring(data, conditions):
                 return pd.DataFrame()  # Return an empty DataFrame
     return data
 
-if 'data' not in stt:
+if 'data' not in stt or 'data_name' not in stt:
     stt.data, stt.data_name = load_data()
 
 # stt.data = calc_errs(stt.data)
