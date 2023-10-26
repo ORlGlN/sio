@@ -94,7 +94,7 @@ def display_model_table(models):
     else:
         model_config = st.session_state['model_config']
 
-    st.info(f"Select up to {model_config['max_monitoring']} models for monitoring and 1 model for deployment at a time.")
+    st.info(f"Select up to {model_config['max_monitoring']} models to be added to dashboard and 1 model for deployment at a time. Only model added to dashboard can be deployed.")
 
     col1, col2 = st.columns(2)
     sort_by = col1.selectbox("Sort by", ["Model ID", "R2", "Adj. R2"], index=0)
@@ -166,11 +166,18 @@ def display_model_table(models):
 
         # Monitoring Checkbox
         is_selected_mon = model_id in model_config['monitoring_models']
-        cols[8].checkbox("", value=is_selected_mon, disabled=(not is_selected_mon and len(model_config['monitoring_models']) >= model_config['max_monitoring']) or (model_id in model_config['deployed_models']), key=f"dashboard_{j}_{model_id}", on_change=on_monitoring_change, args=(model_id, model_config['max_monitoring']))
+        if is_selected_mon:
+            cols[8].button("✔️", disabled=(not is_selected_mon and len(model_config['monitoring_models']) >= model_config['max_monitoring']) or (model_id in model_config['deployed_models']), key=f"dashboard_{j}_{model_id}", on_click=on_monitoring_change, args=(model_id, model_config['max_monitoring']))
+        else:
+            cols[8].button("➕", disabled=(not is_selected_mon and len(model_config['monitoring_models']) >= model_config['max_monitoring']) or (model_id in model_config['deployed_models']), key=f"dashboard_{j}_{model_id}", on_click=on_monitoring_change, args=(model_id, model_config['max_monitoring']))            
+        # cols[8].checkbox("", value=is_selected_mon, disabled=(not is_selected_mon and len(model_config['monitoring_models']) >= model_config['max_monitoring']) or (model_id in model_config['deployed_models']), key=f"dashboard_{j}_{model_id}", on_change=on_monitoring_change, args=(model_id, model_config['max_monitoring']))
         
         # Auto Re-train Checkbox
         is_deployed = model_id in model_config['deployed_models']
-        cols[9].checkbox("", value=is_deployed, disabled=(not is_selected_mon) or (not is_deployed and len(model_config['deployed_models']) >= 1), key=f"retrain_{j}_{model_id}", on_change=on_deploy_change, args=(model_id,))
+        if is_deployed:
+            cols[9].button("✔️", disabled=(not is_selected_mon) or (not is_deployed and len(model_config['deployed_models']) >= 1), key=f"retrain_{j}_{model_id}", on_click=on_deploy_change, args=(model_id,))
+        else:
+            cols[9].button("➕", disabled=(not is_selected_mon) or (not is_deployed and len(model_config['deployed_models']) >= 1), key=f"retrain_{j}_{model_id}", on_click=on_deploy_change, args=(model_id,))
 
         if cols[10].button(f"🗑️", key=f"del_{model_id}"):
             on_delete_click(model_id)
