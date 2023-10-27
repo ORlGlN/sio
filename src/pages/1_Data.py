@@ -20,7 +20,11 @@ if 'uploaded_file' in stt:
 
 if 'skip_rows' not in stt:
     stt.skip_rows = 0
+
+if 'skip_cols' not in stt:
     stt.skip_cols = 0
+
+if 'renamed_dict' not in stt:
     stt.rename_dict = {}
 
 if uploaded_file:
