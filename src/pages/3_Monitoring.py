@@ -72,6 +72,8 @@ def filter_data(data, conditions):
 # Automatic Re-Training Criteria section
 st.markdown(f"## Monitoring Criteria")
 
+st.info('Setting any condition below will cause the data that fulfilled these conditions to be skipped in monitoring and retraining.')
+
 # Variables selection and filtering
 variables = [c for c in data.columns if 'date' not in c.lower()]
 filtering_vars = st.multiselect("Choose Variable(s) for Data Filtering", variables, default=st.session_state.get("filtering_vars", []), key='monitoring_filtering_vars')
