@@ -33,6 +33,7 @@ def delete_history():
     stt.history_df.drop(columns=['id']).to_csv(HISTORY_CSV_PATH, index=False)
     return stt.history_df
 
+st.info("Click on the Remarks field of specific row to view the uncut version for long remarks on the left panel.")
 
 _, col1, col2 = st.columns([7, 1, 1])
 

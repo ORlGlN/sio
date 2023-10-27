@@ -42,6 +42,10 @@ with open(RETRAINING_CONFIG_PATH, 'r') as f:
         st.warning('WARNING: No variable is selected to be included for auto re-training, please navigate to Retraining page to change it.')
         time.sleep(999999)      
 
+if not os.path.exists(MONITORING_CONFIG_PATH):
+    st.warning('WARNING: No monitoring_config.json found, please navigate to Monitoring page to initiate it.')
+    time.sleep(999999)
+
 with open(MONITORING_CONFIG_PATH, 'r') as f:
     monitoring_config = json.load(f)
 
@@ -156,7 +160,6 @@ deployed_model = model_config["deployed_models"][0]
 
 try: 
     data = calc_errs(data, monitoring_models)
-    data = filter_monitoring(data, monitoring_config['conditions'])
 except KeyError as e:
     st.error(f'Please check to make sure your data source contains these columns: {e}')
     time.sleep(999999)
@@ -293,7 +296,7 @@ is_graph_n_interval = selected_speed_label == speed_labels[-2]
 if is_graph_n_interval:
     graph_update_int = st.sidebar.slider('Graph Update Interval (every N samples, 1 sample = 1 hr)', 1, 2160, 720, disabled=stt.sim_started)
 
-variables = [c for c in data.columns if c.lower() not in ['datetime', 'absolute error']]
+variables = [c for c in data.columns if 'date' not in c.lower() or 'error' not in c.lower()]
 color_map = dict(zip(variables, px.colors.qualitative.Plotly))
 
 ts_cols = st.sidebar.multiselect("Select Variables for Time Series", options=variables, disabled=stt.sim_started)
@@ -345,16 +348,20 @@ if 'retrain_msg' not in stt:
 
 last_retrain_hrs = -retrain_cd_hr*2 # placeholder to make sure it is larger than cd to run at first time
 
+start_date = pd.Timestamp(st.sidebar.date_input("Start Date", value=earliest_date, key='auto_start_date_picker', disabled=stt.sim_started))
+end_date = pd.Timestamp(st.sidebar.date_input("End Date", value=latest_date, key='auto_end_date_picker', disabled=stt.sim_started))
+
 if stt.sim_started:    
-    start_date = pd.Timestamp(st.sidebar.date_input("Start Date", value=earliest_date, key='auto_start_date_picker'))
-    end_date = pd.Timestamp(st.sidebar.date_input("End Date", value=latest_date, key='auto_end_date_picker'))
 
     last_index = len(data) - 1
     
-    dated_data = data[(data['Datetime'] >= start_date) & (data['Datetime'] <= end_date)]
+    unfiltered_data = data[(data['Datetime'] >= start_date) & (data['Datetime'] <= end_date)].copy()
+    filtered_data = filter_monitoring(data[(data['Datetime'] >= start_date) & (data['Datetime'] <= end_date)].copy(), monitoring_config['conditions'])
+
 
     for index in range(0, last_index):
-        subset_data = dated_data.iloc[:index+1]
+        subset_data = filtered_data.iloc[:index+1]
+        subset_data_unfiltered = unfiltered_data.iloc[:index+1]
 
         window_size = 7 * 24  # Assuming the data is hourly, so 7 days would be 7*24 hours
 
@@ -390,25 +397,28 @@ if stt.sim_started:
             for y_val in [err_thres, 0]:
                 fig_error.add_shape(go.layout.Shape(type="line", x0=subset_data["Datetime"].min(), x1=subset_data["Datetime"].max(), y0=y_val, y1=y_val, line=dict(color=darker_pastel_green, dash="dot")))
 
+            fig_error.update_layout(legend=dict(y=1.1, x=0.5, xanchor='center', orientation='h', title=None))
             # fig_error.update_layout(yaxis_range=y_axis_limit_abs)
             error_placeholder.plotly_chart(fig_error, use_container_width=True)
 
             if len(ts_cols) > 0:
-                fig_ts = px.line(subset_data, x='Datetime', y=ts_cols, title="Time Series", template="plotly_white", color_discrete_map=color_map)
+                fig_ts = px.line(subset_data_unfiltered, x='Datetime', y=ts_cols, title="Time Series (Unfiltered)", template="plotly_white", color_discrete_map=color_map)
                 ts_placeholder.plotly_chart(fig_ts, use_container_width=True)
 
             ### Error Diff Chart
-            fig_error_diff = px.line(subset_data, x='Datetime', y=[f"Predicted NTA Fuel SIO-{m['id']}" for m in monitoring_models] + ['NTA Fuel'], title="% Error Diff (Pred - y)", template="plotly_white")
+            fig_error_diff = px.line(subset_data, x='Datetime', y=[f"Predicted NTA Fuel SIO-{m['id']}" for m in monitoring_models] + ['NTA Fuel'], title="Raw Error Diff (Pred - y)", template="plotly_white")
+            fig_error_diff.update_layout(legend=dict(y=1.1, x=0.5, xanchor='center', orientation='h', title=None))
             error_diff_placeholder.plotly_chart(fig_error_diff, use_container_width=True)
 
             ### Moving Avg Error Diff ChartW
-            fig_moving_avg_percent_error_diff = px.line(subset_data, x='Datetime', y=[f"% Error SIO-{m['id']}" for m in monitoring_models], title="% Error Diff (Pred - y)", template="plotly_white")
+            fig_moving_avg_percent_error_diff = px.line(subset_data, x='Datetime', y=[f"% Error SIO-{m['id']}" for m in monitoring_models], title="% Error Diff (Pred - y) / y", template="plotly_white")
             fig_moving_avg_percent_error_diff.add_shape(go.layout.Shape(type="rect", x0=subset_data["Datetime"].min(), x1=subset_data["Datetime"].max(), y0=-err_thres, y1=err_thres, fillcolor="lightgreen", opacity=0.5, line=dict(width=0)))
             # fig_moving_avg_percent_error_diff.update_layout(yaxis_range=y_axis_limit_diff)
             darker_pastel_green = "#4CAF75"
             for y_val in [-err_thres, err_thres]:
                 fig_moving_avg_percent_error_diff.add_shape(go.layout.Shape(type="line", x0=subset_data["Datetime"].min(), x1=subset_data["Datetime"].max(), y0=y_val, y1=y_val, line=dict(color=darker_pastel_green, dash="dot")))
             
+            fig_moving_avg_percent_error_diff.update_layout(legend=dict(y=1.1, x=0.5, xanchor='center', orientation='h', title=None))
             error_diff_moving_avg_placeholder.plotly_chart(fig_moving_avg_percent_error_diff, use_container_width=True)
 
             for col in hist_cols:
