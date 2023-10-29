@@ -96,6 +96,14 @@ def load_monitoring_models(config):
             model = joblib.load(f)
         with open(glob(f"{MODEL_VAULT_DIR}/SIO-{model_id}-*.json")[0], 'r') as f:
             metadata = json.load(f)
+
+        # Load edited coeffs and y-intercepts
+        if isinstance(metadata['coeffs'], list) and len(metadata['coeffs']) > 0:
+            model.coef_ = metadata['coeffs']
+        
+        if isinstance(metadata['y_intercept'], float):
+            model.intercept_ = metadata['y_intercept']
+
         monitoring_models.append({
             'id': model_id,
             'model': model,
