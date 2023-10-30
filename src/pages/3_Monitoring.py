@@ -98,11 +98,11 @@ config = {
 if st.button('Save Configuration'):    
     changes = []
 
-    for k, v in config.items():
-        if k in default_config:
-            prev_v = default_config[k]
+    for k, v in config['conditions'].items():
+        if k in default_config['conditions']:
+            prev_v = default_config['conditions'][k]
         else:
-            prev_v = ''
+            prev_v = 'Unset'
 
         if isinstance(v, dict): 
             v = str(v)
@@ -110,6 +110,20 @@ if st.button('Save Configuration'):
 
         if str(v).strip() != str(prev_v).strip():
             changes.append(f'{k} ({prev_v} to {v})')
+
+
+    for k, v in default_config['conditions'].items():
+        if k in config['conditions']:
+            curr_v = config['conditions'][k]
+        else:
+            curr_v = 'Unset'
+
+        if isinstance(v, dict): 
+            v = str(v)
+            curr_v = str(curr_v)
+
+        if str(v).strip() != str(curr_v).strip():
+            changes.append(f'{k} ({v} to {curr_v})')
 
     if len(changes) > 0:
         append_to_hist(HISTORY_CSV_PATH, None, f'Monitoring settings changed: {", ".join(changes)}')

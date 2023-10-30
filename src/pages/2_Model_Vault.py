@@ -97,8 +97,18 @@ def display_model_table(models):
     st.info(f"Select up to {model_config['max_monitoring']} models to be added to dashboard and 1 model for deployment at a time. Only model added to dashboard can be deployed.")
 
     col1, col2 = st.columns(2)
-    sort_by = col1.selectbox("Sort by", ["Model ID", "R2", "Adj. R2"], index=0)
+    sort_by = col1.selectbox("Sort by", ["Model ID", "R2", "Adj. R2", "Updated On"], index=0)
     order = col2.selectbox("Order", ["Ascending", "Descending"], index=1)
+
+    cc1, cc2 = st.columns(2)
+    only_monitoring_checked = cc1.checkbox('Only show added to dashboard models')
+    only_deploy_checked = cc2.checkbox('Only show the deployed model')
+    
+    if only_monitoring_checked:
+        models = [m for m in models if m[0] in model_config['monitoring_models']]
+
+    if only_deploy_checked:
+        models = [m for m in models if m[0] in model_config['deployed_models']]
 
     # Sort the models
     if sort_by == "R2":
@@ -186,6 +196,17 @@ def display_model_table(models):
 
         st.markdown("<hr style='height:1px;border:none;color:#333;background-color:#333;margin:5px 0;'/>", unsafe_allow_html=True)
 
+    if 'model_config' in st.session_state:
+        if len(st.session_state['model_config']['deployed_models']) > 0:
+            st.sidebar.markdown(f"### Deployed Model:")
+            for mid in st.session_state['model_config']['deployed_models']:
+                st.sidebar.markdown(f'- SIO-{mid}')
+
+        if len(st.session_state['model_config']['monitoring_models']) > 0:
+            st.sidebar.markdown(f"### Display in Dashbaord:")
+            for mid in st.session_state['model_config']['monitoring_models']:
+                st.sidebar.markdown(f'- SIO-{mid}')
+                
     time.sleep(1.0)
     st.session_state.is_drawing_table = False
 
@@ -334,4 +355,5 @@ def display_model_details(model_id, model_data):
 # deployed_model_id = get_deployed_model_id()
 models = load_models_from_vault()
 # deployed_model = models.get(deployed_model_id, {})
+
 display_model_table(models)

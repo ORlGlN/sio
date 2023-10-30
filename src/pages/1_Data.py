@@ -9,7 +9,7 @@ stt = st.session_state
 
 stt.sim_started = False
 
-st.title("Upload Custom Excel Data")
+st.markdown('### Upload Custom Excel')
 
 uploaded_file = st.file_uploader("Choose an Excel file", type="xlsx")
 if uploaded_file is not None:
@@ -56,11 +56,11 @@ if uploaded_file:
     stt.data = data
     stt.data_name = uploaded_file.name
 
-with elements("models"):
-    with mui.Stack(spacing=2):
-        with mui.Paper(key='paper-1', sx={ 'padding': 2}, elevation=0):
-            mui.Typography('PI Data API Endpoint', variant='h5')
-            with mui.Stack(sx={'marginTop': 4}):
-                mui.InputLabel('Specify the API endpoint url to ingest the input data automatically', sx={'marginBottom': 2})
-                mui.TextField(label="Endpoint URL", defaultValue='https://api-endpoint/pi/data', onChange=lazy(sync('api_endpoint_url')))
+# st.markdown('### PI Data API Endpoint')
+# with elements("models"):
+#     with mui.Stack(spacing=2):
+#         with mui.Paper(key='paper-1', sx={ 'padding': 2}, elevation=0):
+#             with mui.Stack(sx={'marginTop': 4}):
+#                 mui.InputLabel('Specify the API endpoint url to ingest the input data automatically', sx={'marginBottom': 2})
+#                 mui.TextField(label="Endpoint URL", defaultValue='https://api-endpoint/pi/data', onChange=lazy(sync('api_endpoint_url')))
        

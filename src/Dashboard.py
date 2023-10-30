@@ -99,7 +99,7 @@ def load_monitoring_models(config):
 
         # Load edited coeffs and y-intercepts
         if isinstance(metadata['coeffs'], list) and len(metadata['coeffs']) > 0:
-            model.coef_ = metadata['coeffs']
+            model.coef_ = np.asarray(metadata['coeffs'], dtype=np.float32) 
         
         if isinstance(metadata['y_intercept'], float):
             model.intercept_ = metadata['y_intercept']
@@ -411,6 +411,7 @@ if stt.sim_started:
 
             if len(ts_cols) > 0:
                 fig_ts = px.line(subset_data_unfiltered, x='Datetime', y=ts_cols, title="Time Series (Unfiltered)", template="plotly_white", color_discrete_map=color_map)
+                fig_ts.update_layout(legend=dict(y=1.1, x=0.5, xanchor='center', orientation='h', title=None))
                 ts_placeholder.plotly_chart(fig_ts, use_container_width=True)
 
             ### Error Diff Chart
@@ -443,4 +444,5 @@ if stt.sim_started:
     last_retrain_hrs = -retrain_cd_hr*2 # placeholder to make sure it is larger than cd to run at first time
 
 else:
+    st.title('SIO Regression Auto-Retraining Prototype Tool')
     st.info("Use the sidebar to get started.")
