@@ -311,6 +311,16 @@ color_map = dict(zip(variables, px.colors.qualitative.Plotly))
 ts_cols = st.sidebar.multiselect("Select Variables for Time Series", options=variables, disabled=stt.sim_started)
 hist_cols = st.sidebar.multiselect("Select Variables for Histogram", options=variables, disabled=stt.sim_started)
 
+try:
+    earliest_date = pd.to_datetime(stt.data['Datetime']).min()
+    latest_date = pd.to_datetime(stt.data['Datetime']).max()
+except KeyError as e:
+    st.error(f'Please check to make sure your data source contains these columns: {e}')
+    time.sleep(999999)
+
+start_date = pd.Timestamp(st.sidebar.date_input("Simulation Start Date (Default: First day of data)", value=earliest_date, key='auto_start_date_picker', disabled=stt.sim_started))
+end_date = pd.Timestamp(st.sidebar.date_input("Simulation End Date (Default: Last day of data)", value=latest_date, key='auto_end_date_picker', disabled=stt.sim_started))
+
 error_placeholder = st.empty()
 error_diff_moving_avg_placeholder = st.empty()
 
@@ -341,24 +351,13 @@ sidebar_retrain_status = st.sidebar.empty()
 if len(retrain_msgs) == 1 and retrain_msgs.get_last() == '': sidebar_retrain_status.markdown('No notification at the moment')
 st.sidebar.markdown('---')
 
-
 st.sidebar.markdown(f'Data Source: {stt.data_name}')
 st.sidebar.markdown(f'Deployed Model: SIO-{deployed_model}')
-
-try:
-    earliest_date = pd.to_datetime(stt.data['Datetime']).min()
-    latest_date = pd.to_datetime(stt.data['Datetime']).max()
-except KeyError as e:
-    st.error(f'Please check to make sure your data source contains these columns: {e}')
-    time.sleep(999999)
 
 if 'retrain_msg' not in stt:
     stt['retrain_msg'] = ''
 
 last_retrain_hrs = -retrain_cd_hr*2 # placeholder to make sure it is larger than cd to run at first time
-
-start_date = pd.Timestamp(st.sidebar.date_input("Start Date", value=earliest_date, key='auto_start_date_picker', disabled=stt.sim_started))
-end_date = pd.Timestamp(st.sidebar.date_input("End Date", value=latest_date, key='auto_end_date_picker', disabled=stt.sim_started))
 
 if stt.sim_started:    
 
