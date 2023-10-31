@@ -250,13 +250,14 @@ def retrain_model_with_status(model_id, data, retraining_conf, curr_err, err_thr
 
     ## run training
     try:
-        weights, y_intercept, model, r2, adj_r2 = run_retraining(subset_data_filtered, target_var, selected_vars, algorithm)
+        weights, y_intercept, model, r2, adj_r2, algo_type = run_retraining(subset_data_filtered, target_var, selected_vars, algorithm)
         
         date_created = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         config = {
             "retraining_type": "Auto",
-            "algorithm": algorithm,
+            "algorithm": f'{algo_type} (Auto)' if algorithm.startswith('Auto ') else algorithm,
+            "algo_type": algo_type,
             "target_var": target_var,
             "selected_vars": selected_vars,
             "filtering_vars": filtering_vars,

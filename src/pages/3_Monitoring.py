@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 import json
-import threading
-from sklearn.linear_model import LinearRegression, Lasso, Ridge, ElasticNet
-import time
 from datetime import datetime
 from backend.model import run_retraining, save_model_and_config
 from backend.history import append_to_hist
@@ -123,7 +120,8 @@ if st.button('Save Configuration'):
             curr_v = str(curr_v)
 
         if str(v).strip() != str(curr_v).strip():
-            changes.append(f'{k} ({v} to {curr_v})')
+            c = f'{k} ({v} to {curr_v})'
+            if c not in changes: changes.append(c)
 
     if len(changes) > 0:
         append_to_hist(HISTORY_CSV_PATH, None, f'Monitoring settings changed: {", ".join(changes)}')

@@ -60,7 +60,6 @@ if col2.button("Clear History"):
     history_df = delete_history()
     stt.rows = history_df.to_dict(orient='records')
 
-
 def on_row_click(event):
     st.session_state.remarks = f'### Remarks for id {event["row"]["id"]}:\n\n{event["row"]["Remarks"]}'
 

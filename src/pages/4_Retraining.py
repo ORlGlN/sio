@@ -220,13 +220,14 @@ with st.expander("Manual Re-Training"):
 
     if st.button("Start Manual Retraining"):
         # Call retraining function
-        weights, y_intercept, model, r2, adj_r2 = run_retraining(subset_data_manual, target_var_manual, selected_vars_manual, algorithm_manual)
+        weights, y_intercept, model, r2, adj_r2, algo_type = run_retraining(subset_data_manual, target_var_manual, selected_vars_manual, algorithm_manual)
 
         date_created = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         config = {
             "retraining_type": "Manual",
-            "algorithm": algorithm_manual,
+            "algorithm": f'{algo_type} (Auto)' if algorithm_manual.startswith('Auto ') else algorithm_manual,
+            "algo_type": algo_type,
             "target_var": target_var_manual,
             "selected_vars": selected_vars_manual,
             "filtering_vars": filtering_vars_manual,

@@ -25,6 +25,7 @@ def run_retraining(data, target_var, selected_vars, algorithm):
 
     if algorithm == "Auto (Optimal model based on Adj-R2)":
         models = [LinearRegression, Lasso, Ridge, ElasticNet]
+        names = ['Linear Regression', 'Lasso Regression', 'Ridge Regression', 'Elastic Regression']
 
         mm = []
         r2_scores = []
@@ -34,6 +35,8 @@ def run_retraining(data, target_var, selected_vars, algorithm):
             m = m()
             m.fit(X_train, y_train)
 
+            y_pred = m.predict(X_test)
+            
             # Compute R2
             r2 = r2_score(y_test, y_pred)
             
@@ -51,7 +54,7 @@ def run_retraining(data, target_var, selected_vars, algorithm):
         weights = mm[max_idx].coef_
         y_intercept = mm[max_idx].intercept_
 
-        return weights, y_intercept, mm[max_idx], r2_scores[max_idx], adj_r2_scores[max_idx]
+        return weights, y_intercept, mm[max_idx], r2_scores[max_idx], adj_r2_scores[max_idx], names[max_idx]
     
     else:
         if algorithm == "Linear Regression":
@@ -83,7 +86,7 @@ def run_retraining(data, target_var, selected_vars, algorithm):
         weights = model.coef_
         y_intercept = model.intercept_
 
-        return weights, y_intercept, model, r2, adj_r2
+        return weights, y_intercept, model, r2, adj_r2, algorithm
 
 
 def get_next_id(directory):

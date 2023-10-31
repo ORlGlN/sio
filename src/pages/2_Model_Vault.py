@@ -31,13 +31,6 @@ def read_model_config():
         }
     return config
 
-# def get_deployed_model_id():
-#     if os.path.exists(MODEL_METADATA_PATH):
-#         with open(MODEL_METADATA_PATH, 'r') as f:
-#             metadata = json.load(f)
-#         return metadata.get('deployed_model_id', None)
-#     return None
-
 st.session_state.is_drawing_table = False
 
 def load_models_from_vault():
@@ -101,7 +94,7 @@ def display_model_table(models):
     order = col2.selectbox("Order", ["Ascending", "Descending"], index=1)
 
     cc1, cc2 = st.columns(2)
-    only_monitoring_checked = cc1.checkbox('Only show added to dashboard models')
+    only_monitoring_checked = cc1.checkbox('Only show models displayed in dashboard')
     only_deploy_checked = cc2.checkbox('Only show the deployed model')
     
     if only_monitoring_checked:
@@ -264,30 +257,32 @@ def display_model_details(model_id, model_data):
     st.subheader("Model Details", divider='blue')
     
     # Displaying model configuration details
-    cols = st.columns([2, 1])
-    cols2 = st.columns([2, 1])
+    cols = st.columns(2)
+    cols2 = st.columns(2)
+    cols3 = st.columns(2)
     cols[0].write("Selected Vars:")
     cols2[0].text(', '.join(model_data.get('selected_vars', [])))
     cols[1].write("Target Var:")
     cols2[1].text(model_data.get('target_var'))
-    st.write("Conditions:", model_data.get('conditions'))
+    cols3[0].write("Conditions:")
+    cols3[0].write(model_data.get('conditions'))
+
+    if 'algo_type' in model_data:
+        cols3[1].write('Algo Type:')
+        cols3[1].text(model_data['algo_type'])
 
     # Editable coefficients
     st.subheader("Coefficients:")
     ori_coeffs = model_data.get('ori_coeffs', [])
     coeffs = model_data.get('coeffs', [])
     selected_vars = model_data.get('selected_vars', [])
-    # edited_coeffs = []
-    # for var, coeff, ori_coeff in zip(selected_vars, coeffs, ori_coeffs):
-    #     edited_value = st.number_input(f"{var} (default: {round(ori_coeff, 7)})", value=coeff, format='%.7f')
-    #     edited_coeffs.append(edited_value)
 
     # Coefficient editing mode selection
     if f"advanced_mode_{model_id}" not in st.session_state:
         st.session_state[f"advanced_mode_{model_id}"] = False
 
     advanced_mode = st.session_state.get(f"advanced_mode_{model_id}", False)
-    adv_checkbox = st.checkbox("Advanced Mode", value=advanced_mode, key=f"advanced_mode_checkbox_{model_id}", on_change=on_mode_change, args=(model_id,))
+    st.checkbox("Advanced Mode", value=advanced_mode, key=f"advanced_mode_checkbox_{model_id}", on_change=on_mode_change, args=(model_id,))
     
     # Editable coefficients
     ori_coeffs = model_data.get('ori_coeffs', [])
@@ -352,8 +347,6 @@ def display_model_details(model_id, model_data):
 
     download_coefficients_to_excel(model_id, model_data, coeffs_act_col[1])
 
-# deployed_model_id = get_deployed_model_id()
 models = load_models_from_vault()
-# deployed_model = models.get(deployed_model_id, {})
 
 display_model_table(models)
